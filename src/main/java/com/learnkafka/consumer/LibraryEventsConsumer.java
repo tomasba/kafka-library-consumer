@@ -11,9 +11,7 @@ public class LibraryEventsConsumer {
 
     Logger log = LoggerFactory.getLogger(LibraryEventsConsumer.class);
 
-    @KafkaListener(topics = {"${spring.kafka.topic:library-events}"}
-            , autoStartup = "${spring.kafka.listener.auto-startup:true}"
-            , groupId = "${spring.kafka.consumer.group-id:library-events-listener-group}")
+    @KafkaListener(topics = {"${spring.kafka.topic:library-events}"})
     public void onMessage(ConsumerRecord<Integer, String> record) {
         log.info("Received Library Events record: {}", record);
     }
