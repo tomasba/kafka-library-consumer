@@ -12,10 +12,10 @@ public class LibraryEventsConsumer {
     Logger log = LoggerFactory.getLogger(LibraryEventsConsumer.class);
 
     @KafkaListener(topics = {"${spring.kafka.topic:library-events}"}
-            , autoStartup = "${libraryListener.startup:true}"
-            , groupId = "library-events-listener-group")
+            , autoStartup = "${spring.kafka.listener.auto-startup:true}"
+            , groupId = "${spring.kafka.consumer.group-id:library-events-listener-group}")
     public void onMessage(ConsumerRecord<Integer, String> record) {
-        log.info("Received Library Events record: {}", record.value());
+        log.info("Received Library Events record: {}", record);
     }
 
 }
