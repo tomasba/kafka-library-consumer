@@ -44,4 +44,13 @@ public class Book {
     public void setLibraryEvent(LibraryEvent libraryEvent) {
         this.libraryEvent = libraryEvent;
     }
+
+    @Override
+    public String toString() {
+        return "Book{" +
+                "bookId=" + bookId +
+                ", bookName='" + bookName + '\'' +
+                ", bookAuthor='" + bookAuthor +
+                '}';
+    }
 }
