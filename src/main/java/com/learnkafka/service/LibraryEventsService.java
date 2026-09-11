@@ -10,16 +10,16 @@ import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
 
 @Service
-public class LibraryEventService {
+public class LibraryEventsService {
 
-    private final Logger log = LoggerFactory.getLogger(LibraryEventService.class);
+    private final Logger log = LoggerFactory.getLogger(LibraryEventsService.class);
 
     private final LibraryEventRepo libraryEventRepo;
     private final BookRepo bookRepo;
 
     private final ObjectMapper objectMapper;
 
-    public LibraryEventService(LibraryEventRepo libraryEventRepo, BookRepo bookRepo, ObjectMapper objectMapper) {
+    public LibraryEventsService(LibraryEventRepo libraryEventRepo, BookRepo bookRepo, ObjectMapper objectMapper) {
         this.libraryEventRepo = libraryEventRepo;
         this.bookRepo = bookRepo;
         this.objectMapper = objectMapper;
