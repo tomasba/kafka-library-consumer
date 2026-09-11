@@ -1,5 +1,6 @@
 package com.learnkafka.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 @Entity
@@ -18,6 +19,8 @@ public class Book {
 
     @OneToOne
     @JoinColumn(name = "library_event_id")
+    // JsonIgnore - to avoid infinite recursion during serialization when LibraryEvent references Book and Book references LibraryEvent
+    @JsonIgnore
     private LibraryEvent libraryEvent;
 
     public Book() {}
