@@ -25,14 +25,15 @@ import java.util.concurrent.TimeoutException;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @EmbeddedKafka(partitions = 3, topics = {"library-events"})
 @ActiveProfiles("itest")
 public class LibraryEventsConsumerFalsePositiveIT {
+
+    // see LibraryEventsConsumerConfig#defaultErrorHandler
+    public static final int WANTED_NUMBER_OF_CONSUMER_RETRIES = 3;
 
     @Value("${spring.kafka.template.default-topic}")
     private String defaultTopicName;
@@ -110,9 +111,9 @@ public class LibraryEventsConsumerFalsePositiveIT {
         int recordsBefore = (int) libraryEventRepo.count();
         kafkaTemplate.send(defaultTopicName, updateEventPayload).get();
 
-        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {
-            verify(libraryEventsConsumerSpy, atLeastOnce()).onMessage(isA(ConsumerRecord.class));
-            verify(libraryEventsServiceSpy, atLeastOnce()).process(isA(ConsumerRecord.class));
+        await().atMost(6, TimeUnit.SECONDS).untilAsserted(() -> {
+            verify(libraryEventsConsumerSpy, times(WANTED_NUMBER_OF_CONSUMER_RETRIES)).onMessage(isA(ConsumerRecord.class));
+            verify(libraryEventsServiceSpy, times(WANTED_NUMBER_OF_CONSUMER_RETRIES)).process(isA(ConsumerRecord.class));
             assertEquals(recordsBefore, libraryEventRepo.count());
             assertEquals(true, lastValidationExceptionMessage != null);
         });
