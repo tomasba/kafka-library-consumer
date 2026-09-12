@@ -32,8 +32,9 @@ import static org.mockito.Mockito.*;
 @ActiveProfiles("itest")
 public class LibraryEventsConsumerFalsePositiveIT {
 
-    // see LibraryEventsConsumerConfig#defaultErrorHandler
-    public static final int WANTED_NUMBER_OF_CONSUMER_RETRIES = 3;
+    // see LibraryEventsConsumerConfig#defaultErrorHandler - default retry is 3
+    // see LibraryEventsConsumerConfig#errorHandler -> NotRetryableExceptions
+    public static final int WANTED_NUMBER_OF_CONSUMER_RETRIES = 1;
 
     @Value("${spring.kafka.template.default-topic}")
     private String defaultTopicName;
@@ -111,7 +112,7 @@ public class LibraryEventsConsumerFalsePositiveIT {
         int recordsBefore = (int) libraryEventRepo.count();
         kafkaTemplate.send(defaultTopicName, updateEventPayload).get();
 
-        await().atMost(6, TimeUnit.SECONDS).untilAsserted(() -> {
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {
             verify(libraryEventsConsumerSpy, times(WANTED_NUMBER_OF_CONSUMER_RETRIES)).onMessage(isA(ConsumerRecord.class));
             verify(libraryEventsServiceSpy, times(WANTED_NUMBER_OF_CONSUMER_RETRIES)).process(isA(ConsumerRecord.class));
             assertEquals(recordsBefore, libraryEventRepo.count());

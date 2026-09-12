@@ -1,5 +1,7 @@
 package com.learnkafka.config;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.kafka.autoconfigure.ConcurrentKafkaListenerContainerFactoryConfigurer;
@@ -15,14 +17,27 @@ import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.util.backoff.FixedBackOff;
 
+import java.util.List;
+
 @Configuration
 @EnableKafka
 public class LibraryEventsConsumerConfig {
 
+    private final Logger log = LoggerFactory.getLogger(LibraryEventsConsumerConfig.class);
+
     @Bean
-    public DefaultErrorHandler defaultErrorHandler() {
-        FixedBackOff fixedBackOff = new FixedBackOff(1000L, 2); // 1 second delay, 3 retries
-        return new DefaultErrorHandler(fixedBackOff);
+    public DefaultErrorHandler errorHandler() {
+        List<Class<? extends RuntimeException>> nonRetryableExceptions = List.of(IllegalArgumentException.class);
+
+        FixedBackOff fixedBackOff = new FixedBackOff(1000L, 2);
+        DefaultErrorHandler defaultErrorHandler = new DefaultErrorHandler(fixedBackOff);
+
+        defaultErrorHandler.setRetryListeners((record, ex, deliveryAttempt) ->
+                log.warn("Failed processing consumed library event in retry listener, attempt {}: {}", deliveryAttempt, record, ex));
+
+        nonRetryableExceptions.forEach(defaultErrorHandler::addNotRetryableExceptions);
+
+        return defaultErrorHandler;
     }
 
     @Bean
@@ -37,9 +52,7 @@ public class LibraryEventsConsumerConfig {
         // might be applied like this if not running in a cloud like environment (i.e. no kubernetes)
         factory.setConcurrency(3);
 //        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
-        // add error handler, etc.
-
-        factory.setCommonErrorHandler(defaultErrorHandler());
+        factory.setCommonErrorHandler(errorHandler());
 
         return factory;
     }
